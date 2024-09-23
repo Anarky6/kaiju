@@ -1,0 +1,158 @@
+@app.route('/bot', methods=['POST'])
+def bot():
+    user_msg = request.values.get('Body', '').lower()
+    response = MessagingResponse()
+    
+    # Game Menu
+    if user_msg == 'menu':
+        msg = response.message("Welcome to the WhatsApp Bot Game Menu!")
+        msg = response.message("You can play the following games with our bot:")
+        msg = response.message("* **Sticker Maker**: Create a custom sticker with your own text! Simply send a message in the format `!sticker <text>`.")
+        msg = response.message("* **Search**: Search for results on GeeksforGeeks.org using the ChatGPT API. Simply send a message with your search query.")
+        msg = response.message("")
+        msg = response.message("**How to Play**")
+        msg = response.message("1. Send a message to the bot with the game command or search query.")
+        msg = response.message("2. The bot will respond with the result or sticker.")
+        msg = response.message("")
+        msg = response.message("**Commands**")
+        msg = response.message("* `!sticker <text>`: Create a custom sticker with your own text.")
+        msg = response.message("* `<search query>`: Search for results on GeeksforGeeks.org using the ChatGPT API.")
+        msg = response.message("")
+        msg = response.message("**Have Fun!**")
+    else:
+        # Sticker making feature
+        if user_msg.startswith('!sticker '):
+            text = user_msg[8:]
+            img = Image.new('RGB', (512, 512), color = (73, 109, 137))
+            fnt = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 40)
+            d = ImageDraw.Draw(img)
+            d.text((10,10), text, font=fnt, fill=(255, 255, 0))
+            img.save('sticker.png')
+            response.message().media('sticker.png')
+        else:
+            # Use ChatGPT API to search for results
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "prompt": user_msg + " geeksforgeeks.org",
+                "max_tokens": 1024,
+                "stop": ["\n"]
+            }
+            response_api = requests.post(api_url, headers=headers, json=data)
+            results = json.loads(response_api.text)["choices"][0]["text"]
+            msg = response.message(f"--- Results for '{user_msg}' ---")
+            for result in results.split("\n"):
+                msg = response.message(result)
+// Add Download command to the game menu
+const games = {
+  'rock-paper-scissors': {
+    description: 'Play a game of Rock, Paper, Scissors',
+    commands: ['rock', 'paper', 'scissors']
+  },
+  'hangman': {
+    description: 'Play a game of Hangman',
+    commands: ['guess', 'hint']
+  },
+  'robbery': {
+    description: 'Play a game of Robbery',
+    commands: ['rob', 'steal']
+  },
+  'gamble': {
+    description: 'Play a game of Gamble',
+    commands: ['bet', 'roll']
+  },
+  'download': {
+    description: 'Download music or video from social platforms',
+    commands: ['download']
+  }
+};
+
+// Set up download system
+const download = {
+  platforms: {
+    youtube: {
+      regex: /^https?:\/\/(?:www\.)?youtube\.com\/watch\?(?:.*&)?v=([^&]+)/,
+      download: async (url) => {
+        const videoId = url.match(download.platforms.youtube.regex)[1];
+        const videoInfo = await ytdl.getInfo(videoId);
+        const videoTitle = videoInfo.title;
+        const videoUrl = videoInfo.url;
+        const audioUrl = videoInfo.audio_url;
+
+        // Download video or audio
+        const downloadOptions = {
+          url: videoUrl,
+          path: `downloads/${videoTitle}.mp4`
+        };
+        if (audioUrl) {
+          downloadOptions.url = audioUrl;
+          downloadOptions.path = `downloads/${videoTitle}.mp3`;
+        }
+        const downloadStream = ytdl(downloadOptions.url, { quality: 'highestaudio' });
+        const file = fs.createWriteStream(downloadOptions.path);
+        downloadStream.pipe(file);
+
+        return `Downloaded ${videoTitle} to downloads/${videoTitle}.${downloadOptions.url.endsWith('mp3') ? 'mp3' : 'mp4'}`;
+      }
+    },
+    instagram: {
+      regex: /^https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel)\/([^\/]+)/,
+      download: async (url) => {
+        const postId = url.match(download.platforms.instagram.regex)[1];
+        const postInfo = await instagram.getPostInfo(postId);
+        const videoUrl = postInfo.video_url;
+        const videoTitle = postInfo.caption;
+
+        // Download video
+        const downloadOptions = {
+          url: videoUrl,
+          path: `downloads/${videoTitle}.mp4`
+        };
+        const downloadStream = got.stream(downloadOptions.url);
+        const file = fs.createWriteStream(downloadOptions.path);
+        downloadStream.pipe(file);
+
+        return `Downloaded ${videoTitle} to downloads/${videoTitle}.mp4`;
+      }
+    },
+    // Add more platforms as needed
+  }
+};
+
+// Add Download command logic to the chatbot
+const chatbot = async (message) => {
+  const command = message.body.trim().toLowerCase();
+  if (games[command]) {
+    // Handle game commands
+    const game = games[command];
+    const response = await game.handler(message);
+    return response;
+  } else if (infoCommands[command]) {
+    // Handle information retrieval commands
+    const infoCommand = infoCommands[command];
+    const response = await infoCommand.handler(message);
+    return response;
+  } else if (fileCommands[command]) {
+    // Handle file download commands
+    const fileCommand = fileCommands[command];
+    const response = await fileCommand.handler(message);
+    return response;
+  } else if (command === 'download') {
+    // Handle download command
+    const url = message.body.split(' ')[1];
+    for (const platform in download.platforms) {
+      if (url.match(download.platforms[platform].regex)) {
+        const response = await download.platforms[platform].download(url);
+        return response;
+      }
+    }
+    return 'Invalid URL or platform not supported.';
+  } else {
+    // Handle unknown commands
+    return 'Unknown command. Try again!';
+  }
+};
+    
+    return str(response)
