@@ -1,0 +1,48 @@
+from flask import Flask, request, send_file
+import requests
+from twilio.twiml.messaging_response import MessagingResponse
+from PIL import Image, ImageDraw, ImageFont
+import os
+import json
+
+app = Flask(__name__)
+
+# Set up ChatGPT API credentials
+api_key = "YOUR_CHATGPT_API_KEY"
+api_url = "https://api.chatgpt.com/v1"
+
+@app.route('/bot', methods=['POST'])
+def bot():
+    user_msg = request.values.get('Body', '').lower()
+    response = MessagingResponse()
+    
+    # Sticker making feature
+    if user_msg.startswith('!sticker '):
+        text = user_msg[8:]
+        img = Image.new('RGB', (512, 512), color = (73, 109, 137))
+        fnt = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 40)
+        d = ImageDraw.Draw(img)
+        d.text((10,10), text, font=fnt, fill=(255, 255, 0))
+        img.save('sticker.png')
+        response.message().media('sticker.png')
+    else:
+        # Use ChatGPT API to search for results
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "prompt": user_msg + " geeksforgeeks.org",
+            "max_tokens": 1024,
+            "stop": ["\n"]
+        }
+        response_api = requests.post(api_url, headers=headers, json=data)
+        results = json.loads(response_api.text)["choices"][0]["text"]
+        msg = response.message(f"--- Results for '{user_msg}' ---")
+        for result in results.split("\n"):
+            msg = response.message(result)
+    
+    return str(response)
+
+if __name__ == '__main__':
+    app.run(debug=True)
