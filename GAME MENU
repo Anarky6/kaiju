@@ -69,7 +69,124 @@ const games = {
   }
 };
 
-// Set up download system
+// Add Robbing game option to the game menu
+const games = {
+  'rock-paper-scissors': {
+    description: 'Play a game of Rock, Paper, Scissors',
+    commands: ['rock', 'paper', 'scissors']
+  },
+  'hangman': {
+    description: 'Play a game of Hangman',
+    commands: ['guess', 'hint']
+  },
+  'robbery': {
+    description: 'Play a game of Robbery',
+    commands: ['rob', 'steal']
+  },
+  'gamble': {
+    description: 'Play a game of Gamble',
+    commands: ['bet', 'roll']
+  }
+};
+
+// Set up economy system
+const economy = {
+  users: {}
+};
+
+// Set up security system
+const security = {
+  users: {}
+};
+
+// Set up work system
+const work = {
+  users: {},
+  cooldown: 4 * 60 * 1000 // 4 minutes
+};
+
+// Set up Robbing game logic
+const robberyGame = async (message) => {
+  const user = message.from;
+  const amount = Math.floor(Math.random() * 100); // Random amount to steal
+  const victim = Object.keys(economy.users)[Math.floor(Math.random() * Object.keys(economy.users).length)]; // Random victim
+
+  // Check if user has enough money to rob
+  if (economy.users[user] < amount) {
+    return `You don't have enough money to rob! Your balance is ${economy.users[user]}.`;
+  }
+
+  // Check if victim has enough money to be robbed
+  if (economy.users[victim] < amount) {
+    return `The victim doesn't have enough money to be robbed! Their balance is ${economy.users[victim]}.`;
+  }
+
+  // Check if victim has a security system
+  if (security.users[victim]) {
+    // Robber gets their balance deducted and sent to the victim
+    economy.users[user] -= amount;
+    economy.users[victim] += amount;
+    return `You got caught by the victim's security system! You lost ${amount} and it was sent to the victim. Your new balance is ${economy.users[user]}.`;
+  }
+
+  // Rob the victim
+  economy.users[user] += amount;
+  economy.users[victim] -= amount;
+
+  return `You robbed ${victim} of ${amount}! Your new balance is ${economy.users[user]}.`;
+};
+
+// Set up Work system logic
+const workSystem = async (message) => {
+  const user = message.from;
+  const currentTime = new Date().getTime();
+  const lastWorkTime = work.users[user];
+
+  if (lastWorkTime && currentTime - lastWorkTime < work.cooldown) {
+    return `You need to wait ${Math.floor((work.cooldown - (currentTime - lastWorkTime)) / 1000)} seconds before you can work again.`;
+  }
+
+  const earnings = Math.floor(Math.random() * 100); // Random earnings
+  economy.users[user] += earnings;
+  work.users[user] = currentTime;
+
+  return `You worked and earned ${earnings}! Your new balance is ${economy.users[user]}.`;
+};
+
+const gambleGame = async (message) => {
+  const user = message.from;
+  const bet = parseInt(message.body.split(' ')[1]);
+  const roll = Math.floor(Math.random() * 6) + 1; // Random roll
+
+  if (bet > economy.users[user]) {
+    return `You don't have enough money to bet! Your balance is ${economy.users[user]}.`;
+  }
+
+  if (roll === 6) {
+    economy.users[user] += bet * 2;
+    return `You rolled a 6 and won ${bet * 2}! Your new balance is ${economy.users[user]}.`;
+  } else {
+    economy.users[user] -= bet;
+    return `You rolled a ${roll} and lost ${bet}. Your new balance is ${economy.users[user]}.`;
+  }
+};
+
+const chatbot = async (message) => {
+  const command = message.body.trim().toLowerCase();
+  if (games[command]) {
+    const game = games[command];
+    const response = await game.handler(message);
+    return response;
+  } else if (infoCommands[command]) {
+    const infoCommand = infoCommands[command];
+    const response = await infoCommand.handler(message);
+    return response;
+  } else if (fileCommands[command]) {
+
+    const fileCommand = fileCommands[command];
+    const response = await fileCommand.handler(message);
+    return response;
+  } else if (
 const download = {
   platforms: {
     youtube: {
@@ -81,7 +198,6 @@ const download = {
         const videoUrl = videoInfo.url;
         const audioUrl = videoInfo.audio_url;
 
-        // Download video or audio
         const downloadOptions = {
           url: videoUrl,
           path: `downloads/${videoTitle}.mp4`
@@ -117,11 +233,11 @@ const download = {
         return `Downloaded ${videoTitle} to downloads/${videoTitle}.mp4`;
       }
     },
-    // Add more platforms as needed
+
   }
 };
 
-// Add Download command logic to the chatbot
+// Add Download command lo
 const chatbot = async (message) => {
   const command = message.body.trim().toLowerCase();
   if (games[command]) {
