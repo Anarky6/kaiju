@@ -45,7 +45,6 @@ def bot():
             msg = response.message(f"--- Results for '{user_msg}' ---")
             for result in results.split("\n"):
                 msg = response.message(result)
-// Add Download command to the game menu
 const games = {
   'rock-paper-scissors': {
     description: 'Play a game of Rock, Paper, Scissors',
@@ -55,7 +54,7 @@ const games = {
     description: 'Play a game of Hangman',
     commands: ['guess', 'hint']
   },
-  'robbery': {
+  'economy': {
     description: 'Play a game of Robbery',
     commands: ['rob', 'steal']
   },
@@ -69,16 +68,6 @@ const games = {
   }
 };
 
-// Add Robbing game option to the game menu
-const games = {
-  'rock-paper-scissors': {
-    description: 'Play a game of Rock, Paper, Scissors',
-    commands: ['rock', 'paper', 'scissors']
-  },
-  'hangman': {
-    description: 'Play a game of Hangman',
-    commands: ['guess', 'hint']
-  },
   'robbery': {
     description: 'Play a game of Robbery',
     commands: ['rob', 'steal']
@@ -86,10 +75,6 @@ const games = {
   'gamble': {
     description: 'Play a game of Gamble',
     commands: ['bet', 'roll']
-  }
-};
-
-// Set up economy system
 const economy = {
   users: {}
 };
@@ -170,6 +155,11 @@ const gambleGame = async (message) => {
     return `You rolled a ${roll} and lost ${bet}. Your new balance is ${economy.users[user]}.`;
   }
 };
+
+  }
+};
+
+// Set up economy system
 
 const chatbot = async (message) => {
   const command = message.body.trim().toLowerCase();
@@ -267,7 +257,7 @@ const chatbot = async (message) => {
     return 'Invalid URL or platform not supported.';
   } else {
     // Handle unknown commands
-    return 'Unknown command. Try again!';
+    return 'stupid ass nigga. Try again!';
   }
 };
     
